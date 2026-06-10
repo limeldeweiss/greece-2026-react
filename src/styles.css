@@ -339,24 +339,10 @@ svg {
 .point-info {
   grid-column: 2 / -1;
   margin: 10px 0 0;
-  padding: 16px 18px;
+  padding: 18px 20px 16px;
   border: 1px solid rgba(18, 60, 87, .12);
   border-radius: 8px;
   background: #fbfaf7;
-}
-
-.info-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-  color: #123c57;
-  font-weight: 900;
-}
-
-.info-label svg {
-  width: 20px;
-  height: 20px;
 }
 
 .info-block + .info-block {
