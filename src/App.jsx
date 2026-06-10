@@ -1,8 +1,11 @@
 import { useMemo, useState } from "react";
-import { Bus, CalendarDays, ChevronDown, Hotel, Info, Languages, Map, MapPinned, Plane, Ship, Utensils } from "lucide-react";
 import { itineraryData } from "./itineraryData";
 
-const typeIcon = { transport: Bus, hotel: Hotel, sights: MapPinned, food: Utensils, ferry: Ship, tip: Info };
+const typeIcon = { transport: "M", hotel: "H", sights: "P", food: "F", ferry: "S", tip: "i" };
+
+function IconText({ children, className = "" }) {
+  return <span className={className} aria-hidden="true">{children}</span>;
+}
 
 function Html({ html }) {
   return <div className="rich-text" dangerouslySetInnerHTML={{ __html: html }} />;
@@ -16,13 +19,13 @@ function text(item, lang) {
 
 function Block({ block, lang, defaultOpen }) {
   const [open, setOpen] = useState(defaultOpen);
-  const Icon = typeIcon[block.type] || Info;
+  const icon = typeIcon[block.type] || "i";
   return (
     <section className={`accordion block-${block.type}`}>
       <button className="accordion-trigger" type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
-        <span className="block-icon"><Icon size={18} /></span>
+        <span className="block-icon">{icon}</span>
         <span>{lang === "de" ? block.titleDe : block.title}</span>
-        <ChevronDown className={open ? "chevron open" : "chevron"} size={18} />
+        <IconText className={open ? "chevron open" : "chevron"}>v</IconText>
       </button>
       {open && <Html html={lang === "de" ? block.htmlDe : block.html} />}
     </section>
@@ -34,12 +37,12 @@ function Overview({ lang }) {
   return (
     <main className="overview-grid">
       <section className="overview-panel intro-panel">
-        <div className="panel-label"><Info size={16} />{lang === "de" ? "Reiseüberblick" : "行程總覽"}</div>
+        <div className="panel-label"><IconText>i</IconText>{lang === "de" ? "Reiseüberblick" : "行程總覽"}</div>
         {itineraryData.intro.map((item, index) => <Html key={index} html={text(item, lang)} />)}
       </section>
       {country && (
         <section className="overview-panel country-panel">
-          <div className="panel-label"><Map size={16} />{text(country.name, lang)}</div>
+          <div className="panel-label"><IconText>M</IconText>{text(country.name, lang)}</div>
           <div className="country-table">
             {country.rows.map((row) => (
               <div className="country-row" key={row[0]}>
@@ -53,7 +56,7 @@ function Overview({ lang }) {
       )}
       {itineraryData.infoSections.map((section) => (
         <section className="overview-panel wide-panel" key={section.title}>
-          <div className="panel-label"><CalendarDays size={16} />{lang === "de" ? section.titleDe : section.title}</div>
+          <div className="panel-label"><IconText>D</IconText>{lang === "de" ? section.titleDe : section.title}</div>
           <Html html={lang === "de" ? section.htmlDe : section.html} />
         </section>
       ))}
@@ -93,9 +96,9 @@ export default function App() {
     <div className="app-shell">
       <header className="hero">
         <nav className="topbar">
-          <div className="brand-mark"><Plane size={18} />{lang === "de" ? "Reiseplan" : "旅行行程"}</div>
+          <div className="brand-mark"><IconText>A</IconText>{lang === "de" ? "Reiseplan" : "旅行行程"}</div>
           <div className="language-switch" aria-label="Language switch">
-            <Languages size={17} />
+            <IconText>文</IconText>
             <button className={lang === "zh" ? "active" : ""} type="button" onClick={() => changeLang("zh")}>中文</button>
             <button className={lang === "de" ? "active" : ""} type="button" onClick={() => changeLang("de")}>Deutsch</button>
           </div>
@@ -110,7 +113,7 @@ export default function App() {
       <div className="layout">
         <aside className="timeline" aria-label="Itinerary timeline">
           <button className={active === "overview" ? "timeline-item active" : "timeline-item"} type="button" onClick={() => setActive("overview")}>
-            <span className="timeline-dot"><Info size={15} /></span>
+            <span className="timeline-dot">i</span>
             <span><strong>{lang === "de" ? "Übersicht" : "總覽"}</strong><small>{lang === "de" ? "Reiseinfos" : "行程資訊"}</small></span>
           </button>
           {itineraryData.days.map((day, index) => (
