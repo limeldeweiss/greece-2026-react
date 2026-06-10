@@ -38,8 +38,8 @@ svg {
   background:
     linear-gradient(135deg, rgba(18, 60, 87, .98), rgba(47, 112, 123, .95)),
     url("https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=1800&q=80") center/cover;
-  min-height: 300px;
-  padding: 28px clamp(18px, 4vw, 56px) 62px;
+  min-height: 330px;
+  padding: 30px clamp(18px, 4vw, 56px) 70px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -84,7 +84,7 @@ svg {
 .hero-copy h1 {
   font-size: clamp(2.6rem, 6vw, 5.2rem);
   line-height: 1;
-  margin: 0 0 24px;
+  margin: 0 0 34px;
   letter-spacing: 0;
 }
 
@@ -258,47 +258,111 @@ svg {
   font-size: 1.15rem;
 }
 
-.accordion-stack {
+.point-timeline {
   display: grid;
-  gap: 12px;
+  gap: 0;
+  position: relative;
 }
 
-.accordion {
-  border: 1px solid rgba(18, 60, 87, .12);
-  border-radius: 8px;
-  overflow: hidden;
-  background: #fbfaf7;
+.trip-point {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  column-gap: 16px;
+  position: relative;
+  padding-bottom: 18px;
 }
 
-.accordion-trigger {
-  width: 100%;
-  border: 0;
-  background: #fff;
-  display: flex;
+.trip-point::before {
+  content: "";
+  position: absolute;
+  left: 21px;
+  top: 44px;
+  bottom: -2px;
+  width: 2px;
+  background: #d7c9b7;
+}
+
+.trip-point:last-child::before {
+  display: none;
+}
+
+.point-head {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 44px 42px minmax(0, 1fr) 24px;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  width: 100%;
+  border: 0;
+  background: transparent;
   color: #17212b;
-  font-weight: 850;
   text-align: left;
   cursor: pointer;
-  font-size: 1.1rem;
+  padding: 0;
 }
 
-.block-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 7px;
+.point-number {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #123c57;
+  color: #fff;
+  font-weight: 900;
+  box-shadow: 0 0 0 5px #f5efe5;
+  z-index: 1;
+}
+
+.point-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   background: #e8f0ed;
   color: #123c57;
-  flex: 0 0 auto;
 }
 
-.block-icon svg {
-  width: 21px;
-  height: 21px;
+.point-icon svg {
+  width: 23px;
+  height: 23px;
+}
+
+.point-title {
+  min-width: 0;
+  font-size: 1.28rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.point-info {
+  grid-column: 2 / -1;
+  margin: 10px 0 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(18, 60, 87, .12);
+  border-radius: 8px;
+  background: #fbfaf7;
+}
+
+.info-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: #123c57;
+  font-weight: 900;
+}
+
+.info-label svg {
+  width: 20px;
+  height: 20px;
+}
+
+.info-block + .info-block {
+  border-top: 1px solid rgba(18, 60, 87, .1);
+  margin-top: 14px;
+  padding-top: 14px;
 }
 
 .chevron {
@@ -310,22 +374,6 @@ svg {
 
 .chevron.open {
   transform: rotate(180deg);
-}
-
-.section-content {
-  padding: 0 18px 18px;
-}
-
-.section-block + .section-block {
-  border-top: 1px solid rgba(18, 60, 87, .1);
-  margin-top: 16px;
-  padding-top: 16px;
-}
-
-.section-block h3 {
-  margin: 14px 0 8px;
-  font-size: 1rem;
-  color: #123c57;
 }
 
 .rich-text {
@@ -417,25 +465,12 @@ th {
   line-height: 1.65;
 }
 
-.section-transport .block-icon {
-  background: #e5f2f7;
-  color: #176d8c;
-}
-
-.section-food .block-icon {
-  background: #f8eadf;
-  color: #a44d2c;
-}
-
-.section-sights .block-icon {
-  background: #eee8f7;
-  color: #6950a5;
-}
-
 @media (max-width: 820px) {
   .hero {
-    min-height: 260px;
-    padding: 18px 16px 58px;
+    min-height: 310px;
+    padding: 18px 16px 64px;
+    justify-content: flex-start;
+    gap: 44px;
   }
 
   .topbar {
@@ -449,7 +484,7 @@ th {
 
   .hero-copy h1 {
     font-size: clamp(2.2rem, 13vw, 3.8rem);
-    margin-bottom: 18px;
+    margin-bottom: 28px;
   }
 
   .city-tags span {
@@ -506,6 +541,41 @@ th {
     font-size: 1.05rem;
   }
 
+  .trip-point {
+    grid-template-columns: 38px minmax(0, 1fr);
+    column-gap: 12px;
+    padding-bottom: 16px;
+  }
+
+  .trip-point::before {
+    left: 18px;
+    top: 40px;
+  }
+
+  .point-head {
+    grid-template-columns: 38px 38px minmax(0, 1fr) 20px;
+    gap: 10px;
+  }
+
+  .point-number,
+  .point-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .point-number {
+    box-shadow: 0 0 0 4px #f5efe5;
+  }
+
+  .point-title {
+    font-size: 1.16rem;
+  }
+
+  .point-info {
+    padding: 14px;
+    margin-top: 9px;
+  }
+
   .overview-panel,
   .day-detail {
     padding: 18px;
@@ -513,11 +583,6 @@ th {
 
   .day-detail h2 {
     font-size: clamp(2.2rem, 12vw, 3.6rem);
-  }
-
-  .accordion-trigger {
-    font-size: 1.08rem;
-    padding: 13px 14px;
   }
 
   .rich-text p,
