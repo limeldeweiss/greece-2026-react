@@ -338,6 +338,8 @@ svg {
 
 .point-info {
   grid-column: 2 / -1;
+  min-width: 0;
+  max-width: 100%;
   margin: 10px 0 0;
   padding: 18px 20px 16px;
   border: 1px solid rgba(18, 60, 87, .12);
@@ -349,6 +351,12 @@ svg {
   border-top: 1px solid rgba(18, 60, 87, .1);
   margin-top: 14px;
   padding-top: 14px;
+}
+
+.info-block,
+.rich-text {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .chevron {
@@ -385,13 +393,18 @@ svg {
   color: #40505c;
   line-height: 1.68;
   font-size: 1rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .rich-text a {
+  display: inline-block;
+  max-width: 100%;
   color: #176d8c;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   overflow-wrap: anywhere;
+  word-break: break-all;
 }
 
 .table-wrap {
