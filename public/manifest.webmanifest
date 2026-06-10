@@ -1,0 +1,17 @@
+{
+  "name": "希臘10日旅遊",
+  "short_name": "希臘10日旅遊",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5efe5",
+  "theme_color": "#123c57",
+  "icons": [
+    {
+      "src": "/country-flag-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
