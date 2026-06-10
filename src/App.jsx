@@ -69,24 +69,81 @@ function listItems(html) {
   return items;
 }
 
-function pointName(raw) {
-  let name = stripHtml(raw)
+function routeItems(block) {
+  const ordered = String(block?.html || "").match(/<ol>[\s\S]*?<\/ol>/);
+  return listItems(ordered ? ordered[0] : block?.html);
+}
+
+function planBlockForDay(day) {
+  return day.blocks.find(isPlanBlock) ||
+    day.blocks.find((block) => /行程|順序|晚餐|散步|小逛/i.test(block.title || "") && routeItems(block).length >= 2) ||
+    day.blocks.find((block) => !/票價|來源|預訂|查詢|餐廳/i.test(block.title || "") && routeItems(block).length >= 2);
+}
+
+function htmlPieces(html) {
+  const pieces = [];
+  let index = 0;
+  String(html || "").replace(/<(li|p)>(.*?)<\/\1>/g, (match, tag, content) => {
+    const textValue = stripHtml(content);
+    if (textValue) pieces.push({ html: match, text: textValue, tag, index });
+    index += 1;
+    return "";
+  });
+  return pieces;
+}
+
+function stripActionWords(textValue) {
+  return stripHtml(textValue)
     .replace(/^\d+[.)、]\s*/, "")
-    .replace(/^(抵達|前往|回到|回|搭|到|從|入住|Check-in|Check-out|寄行李或|寄行李|午餐：|晚餐：|早餐：)\s*/i, "")
+    .replace(/^\d{1,2}:\d{2}(?:-\d{1,2}:\d{2})?\s*/, "")
+    .replace(/^(抵達|前往|回到|回|搭|到|從|入住|前往|經由|步行到|下午休息或|早點休息，準備|Check-in|Check-out|Boat to|Boat back to|Bus to|Walk to)\s*/i, "")
+    .replace(/^(公車或\s*SeaBus\s*到|SeaBus\s*到|KTEL\s*Bus\s*到)\s*/i, "")
+    .replace(/(出發|清晨散步|外觀拍照|外觀|拍照|看日落|補拍夕陽|晚餐散步|午餐與散步|最後購物|輕鬆收尾|二選一|步行|散步|短逛|外圍|休息|check-in|check-out|寄行李|或直接出發|巷弄)$/i, "")
     .replace(/，.*$/, "")
     .replace(/。.*$/, "")
     .trim();
-  if (/JTR|Santorini Airport/i.test(name)) return "JTR";
-  if (/ATH|Athens International Airport/i.test(name)) return "ATH";
-  if (/Athinios Port/i.test(name)) return "Athinios Port";
-  if (/Mykonos New Port|Tourlos/i.test(name)) return "Mykonos New Port";
-  if (/Fira Bus Station/i.test(name)) return "Fira Bus Station";
+}
+
+function pointName(raw) {
+  let name = stripActionWords(raw)
+    .replace(/^[，,\s]+/, "")
+    .replace(/^(前往|抵達|到|從|回到|回)\s*/i, "")
+    .replace(/^(午餐|晚餐|早餐)[:：]\s*/i, "")
+    .replace(/\s*(午餐|晚餐|早餐).*$/i, "")
+    .replace(/\s*(或|or)\s*$/i, "")
+    .trim();
+  if (/Finders Ermou/i.test(name)) return "Athens / Finders Ermou Suites";
+  if (/Synathens/i.test(name)) return "Athens / Synathens Syntagma";
   if (/Just Blue/i.test(name)) return "Oia / Just Blue";
   if (/White Concept/i.test(name)) return "Fira / White Concept Caves";
   if (/Christy Suites/i.test(name)) return "Mykonos / Christy Suites";
-  if (/Finders Ermou/i.test(name)) return "Athens / Finders Ermou Suites";
-  if (/Synathens/i.test(name)) return "Athens / Synathens Syntagma";
+  if (/\bJTR\b|Santorini Airport/i.test(name)) return "JTR";
+  if (/\bATH\b|Athens International Airport/i.test(name)) return "ATH";
+  if (/Athinios Port/i.test(name)) return "Athinios Port";
+  if (/Mykonos New Port|Tourlos/i.test(name)) return "Mykonos New Port";
+  if (/Fira Bus Station/i.test(name)) return "Fira Bus Station";
   return name || raw;
+}
+
+function splitPointCandidates(raw) {
+  if (/休息|準備/.test(raw) && !/Beach|Garden|Square|Plaka|Fira|Oia|Mykonos|Athens|Syntagma|National/.test(raw)) return [];
+  const cleaned = stripActionWords(raw);
+  if (!cleaned) return [];
+  const normalized = cleaned
+    .replace(/\s+或\s+/g, " / ")
+    .replace(/\s+or\s+/gi, " / ")
+    .replace(/\s*->\s*/g, " / ");
+  const keepTogether = /Mykonos Town\s*\/\s*Chora|Metro Line|Blue Line|Green Line/i.test(normalized);
+  const shouldSplit = !keepTogether && (
+    normalized.includes(" / ") ||
+    /Temple of Hephaestus|Stoa of Attalos|Blue Domes|Maritime Museum|Windmills|Little Venice|National Garden|Benaki Museum|Agios Ioannis|Ornos Beach/.test(normalized)
+  );
+  const parts = shouldSplit ? normalized.split(/\s*\/\s*/) : [normalized];
+  return parts
+    .map((part) => pointName(part))
+    .map((part) => part.replace(/^(午餐|晚餐|早餐)[:：]\s*/i, "").trim())
+    .filter((part) => !/^(Metro Line|M1|M3|Blue Line|Green Line|KTEL|SeaBus|Bus)/i.test(part))
+    .filter(Boolean);
 }
 
 function pointIcon(name) {
@@ -108,28 +165,93 @@ function keywords(textValue) {
     .slice(0, 8);
 }
 
-function relatedBlocks(day, point, index) {
-  const words = keywords(point.name);
-  const blocks = day.blocks.filter((block) => !isPlanBlock(block));
-  const matched = blocks.filter((block) => {
-    const haystack = `${block.title} ${stripHtml(block.html)}`;
-    return words.some((word) => haystack.includes(word));
+function aliasWords(point) {
+  const seed = `${point.name} ${point.raw}`;
+  const words = keywords(seed);
+  const aliases = {
+    JTR: ["Santorini Airport", "10:55", "airport transfer"],
+    ATH: ["Athens Airport", "M3", "Sky Express"],
+    "Athinios Port": ["Santorini Athinios Port", "08:10", "Seajets"],
+    "Mykonos New Port": ["Tourlos", "New Port", "SeaBus"],
+    "Fira Bus Station": ["Fira Bus Station", "KTEL"],
+    "Oia / Just Blue": ["Just Blue", "airport transfer", "Oia"],
+    "Fira / White Concept Caves": ["White Concept Caves", "Fira 84700"],
+    "Mykonos / Christy Suites": ["Christy Suites", "Agios Antonios", "Fabrika"],
+    "Athens / Finders Ermou Suites": ["Finders Ermou Suites", "Ermou"],
+    "Athens / Synathens Syntagma": ["Synathens Syntagma", "Apollonos 5"],
+  };
+  return [...new Set([...words, ...(aliases[point.name] || [])])];
+}
+
+function relevantPieces(block, point, usedKeys) {
+  const words = aliasWords(point);
+  const dePieces = htmlPieces(block.htmlDe);
+  return htmlPieces(block.html).map((piece) => ({ piece, dePiece: dePieces[piece.index] || piece })).filter(({ piece }) => {
+    const key = `${block.title}:${piece.text}`;
+    if (usedKeys.has(key)) return false;
+    return words.some((word) => piece.text.includes(word));
   });
-  if (matched.length) return matched;
-  if (index === 0) return blocks.filter((block) => /交通|航班|船|入住|Check/i.test(block.title) || ["transport", "ferry", "hotel", "tip"].includes(block.type)).slice(0, 2);
-  if (/餐|food|lunch|dinner|午餐|晚餐/i.test(point.raw)) return blocks.filter((block) => block.type === "food").slice(0, 1);
-  return blocks.filter((block) => ["sights", "tip"].includes(block.type)).slice(0, 1);
+}
+
+function pointInfo(day, point, index, usedKeys) {
+  const blocks = day.blocks.filter((block) => !isPlanBlock(block));
+  const snippets = [];
+  const snippetsDe = [];
+  blocks.forEach((block) => {
+    relevantPieces(block, point, usedKeys).forEach(({ piece, dePiece }) => {
+      const key = `${block.title}:${piece.text}`;
+      usedKeys.add(key);
+      snippets.push(piece.html);
+      snippetsDe.push(dePiece.html);
+    });
+  });
+  if (!snippets.length && index === 0) {
+    const firstTransport = blocks.find((block) => /交通|航班|船|入住|Check/i.test(block.title) || ["transport", "ferry", "hotel", "tip"].includes(block.type));
+    const piece = firstTransport ? htmlPieces(firstTransport.html)[0] : null;
+    if (piece) {
+      const dePiece = htmlPieces(firstTransport.htmlDe)[piece.index] || piece;
+      usedKeys.add(`${firstTransport.title}:${piece.text}`);
+      snippets.push(piece.html);
+      snippetsDe.push(dePiece.html);
+    }
+  }
+  if (!snippets.length && /餐|food|lunch|dinner|午餐|晚餐|早餐/i.test(point.raw)) {
+    const foodBlock = blocks.find((block) => block.type === "food");
+    const piece = foodBlock ? htmlPieces(foodBlock.html).find((item) => !usedKeys.has(`${foodBlock.title}:${item.text}`)) : null;
+    if (piece) {
+      const dePiece = htmlPieces(foodBlock.htmlDe)[piece.index] || piece;
+      usedKeys.add(`${foodBlock.title}:${piece.text}`);
+      snippets.push(piece.html);
+      snippetsDe.push(dePiece.html);
+    }
+  }
+  if (!snippets.length) {
+    snippets.push(`<p>${point.raw}</p>`);
+    snippetsDe.push(`<p>${point.raw}</p>`);
+  }
+  const wrap = (items) => items.some((item) => item.startsWith("<li>"))
+    ? `<ul>${items.map((item) => item.startsWith("<li>") ? item : `<li>${stripHtml(item)}</li>`).join("")}</ul>`
+    : items.join("");
+  return [{ html: wrap(snippets), htmlDe: wrap(snippetsDe) }];
 }
 
 function itineraryPoints(day) {
-  const plan = day.blocks.find(isPlanBlock);
-  const items = plan ? listItems(plan.html) : [];
+  const plan = planBlockForDay(day);
+  const items = plan ? routeItems(plan) : [];
   const sourceItems = items.length ? items : day.blocks.map((block) => block.title);
-  return sourceItems.map((item, index) => {
-    const name = pointName(item);
-    const point = { raw: item, name, icon: pointIcon(`${name} ${item}`) };
-    return { ...point, blocks: relatedBlocks(day, point, index) };
+  const usedNames = new Set();
+  const usedKeys = new Set();
+  const points = [];
+  sourceItems.forEach((item) => {
+    splitPointCandidates(item).forEach((name) => {
+      const normalized = name.toLowerCase();
+      if (usedNames.has(normalized)) return;
+      usedNames.add(normalized);
+      const point = { raw: item, name, icon: pointIcon(`${name} ${item}`) };
+      points.push({ ...point, blocks: pointInfo(day, point, points.length, usedKeys) });
+    });
   });
+  return points;
 }
 
 function TripPoint({ point, index, lang }) {
