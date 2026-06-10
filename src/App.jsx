@@ -336,14 +336,32 @@ function TripPoint({ point, index, lang }) {
   );
 }
 
+function overviewTitle(section, lang) {
+  const zhMap = {
+    "確定住宿與交通": "住宿與交通",
+    "重要注意事項": "注意事項",
+    "主要來源與複查連結": "參考資訊",
+  };
+  const deMap = {
+    "確定住宿與交通": "Unterkünfte und Verkehr",
+    "重要注意事項": "Hinweise",
+    "主要來源與複查連結": "Referenzen",
+  };
+  if (lang === "de") return deMap[section.title] || section.titleDe;
+  return zhMap[section.title] || section.title;
+}
+
 function Overview({ lang }) {
   const country = itineraryData.countryInfo;
+  const [primarySection, ...otherSections] = itineraryData.infoSections;
   return (
     <main className="overview-grid">
-      <section className="overview-panel intro-panel">
-        <div className="panel-label"><Icon name="info" />{lang === "de" ? "Reiseüberblick" : "行程總覽"}</div>
-        {itineraryData.intro.map((item, index) => <Html key={index} html={text(item, lang)} />)}
-      </section>
+      {primarySection && (
+        <section className="overview-panel">
+          <div className="panel-label"><Icon name="calendar" />{overviewTitle(primarySection, lang)}</div>
+          <Html html={lang === "de" ? primarySection.htmlDe : primarySection.html} />
+        </section>
+      )}
       {country && (
         <section className="overview-panel country-panel">
           <div className="panel-label"><Icon name="map" />{text(country.name, lang)}</div>
@@ -358,9 +376,9 @@ function Overview({ lang }) {
           <ul className="note-list">{country.notes.map((note, index) => <li key={index}>{text(note, lang)}</li>)}</ul>
         </section>
       )}
-      {itineraryData.infoSections.map((section) => (
-        <section className="overview-panel wide-panel" key={section.title}>
-          <div className="panel-label"><Icon name="calendar" />{lang === "de" ? section.titleDe : section.title}</div>
+      {otherSections.map((section) => (
+        <section className="overview-panel" key={section.title}>
+          <div className="panel-label"><Icon name="calendar" />{overviewTitle(section, lang)}</div>
           <Html html={lang === "de" ? section.htmlDe : section.html} />
         </section>
       ))}

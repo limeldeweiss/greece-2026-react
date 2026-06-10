@@ -193,7 +193,6 @@ svg {
 
 .overview-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 
@@ -204,10 +203,6 @@ svg {
   box-shadow: 0 22px 70px rgba(38, 48, 59, .1);
   border-radius: 8px;
   padding: 22px;
-}
-
-.wide-panel {
-  grid-column: 1 / -1;
 }
 
 .panel-label {
