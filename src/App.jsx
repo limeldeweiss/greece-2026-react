@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { Bus, CalendarDays, ChevronDown, Coffee, Ferry, Hotel, Info, Languages, Map, MapPinned, Plane, Utensils } from "lucide-react";
+import { Bus, CalendarDays, ChevronDown, Hotel, Info, Languages, Map, MapPinned, Plane, Ship, Utensils } from "lucide-react";
 import { itineraryData } from "./itineraryData";
 
-const typeIcon = { transport: Bus, hotel: Hotel, sights: MapPinned, food: Utensils, ferry: Ferry, tip: Info };
+const typeIcon = { transport: Bus, hotel: Hotel, sights: MapPinned, food: Utensils, ferry: Ship, tip: Info };
 
 function Html({ html }) {
   return <div className="rich-text" dangerouslySetInnerHTML={{ __html: html }} />;
